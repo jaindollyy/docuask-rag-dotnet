@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DocuAsk.Core/DocuAsk.Core.csproj" />
+    <Project Path="src/DocuAsk.Cli/DocuAsk.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DocuAsk.Tests/DocuAsk.Tests.csproj" />
+  </Folder>
+</Solution>

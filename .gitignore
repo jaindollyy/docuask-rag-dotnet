@@ -1,0 +1,7 @@
+bin/
+obj/
+.vs/
+*.user
+.env
+docs/.docuask-index.json
+TestResults/
