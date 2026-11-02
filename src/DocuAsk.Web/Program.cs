@@ -4,6 +4,7 @@ using Microsoft.Extensions.AI;
 using OllamaSharp;
 using OpenAI;
 using UglyToad.PdfPig;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -192,7 +193,8 @@ static async Task<string> ReadTextAsync(IFormFile file, CancellationToken ct)
         using var buffer = new MemoryStream();
         await stream.CopyToAsync(buffer, ct);
         using var pdf = PdfDocument.Open(buffer.ToArray());
-        return string.Join("\n\n", pdf.GetPages().Select(page => page.Text));
+        // Reads words in reading order with proper spacing, which page.Text doesn't always keep.
+        return string.Join("\n\n", pdf.GetPages().Select(ContentOrderTextExtractor.GetText));
     }
 
     using var reader = new StreamReader(stream);
