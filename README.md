@@ -29,13 +29,24 @@ If nothing relevant is found, DocuAsk says so without calling the chat model, so
 | Project | What it contains |
 | --- | --- |
 | `src/DocuAsk.Core` | Chunking, vector index, retrieval and prompt building. No AI SDK dependencies, so it is fully unit tested. |
-| `src/DocuAsk.Cli` | Console app. Connects the core to OpenAI through `IChatClient` and `IEmbeddingGenerator`. |
+| `src/DocuAsk.Cli` | Console app. Connects the core to OpenAI or Ollama through `IChatClient` and `IEmbeddingGenerator`. |
+| `src/DocuAsk.Web` | Browser UI: upload documents and ask questions. ASP.NET Core minimal API, a single static page, PDF text extraction with PdfPig |
 | `tests/DocuAsk.Tests` | xUnit tests using a fake keyword embedder, so they run offline with no API key. |
 | `docs/` | Sample policy documents for a fictional airline. |
 
 ## Run it
 
-Requirements: .NET 10 SDK and an OpenAI API key.
+Requirements: .NET 10 SDK, plus either [Ollama](https://ollama.com) (free, runs locally) or an OpenAI API key.
+
+### With Ollama (free)
+
+```bash
+ollama pull llama3.2
+ollama pull nomic-embed-text
+dotnet run --project src/DocuAsk.Cli -- docs
+```
+
+### With OpenAI
 
 ```bash
 # Windows PowerShell
@@ -47,14 +58,17 @@ export OPENAI_API_KEY="your-key"
 dotnet run --project src/DocuAsk.Cli -- docs
 ```
 
-Point it at any folder of `.md` or `.txt` files by changing the last argument.
+When `OPENAI_API_KEY` is set, OpenAI is used; otherwise Ollama. Set `DOCUASK_PROVIDER` to `ollama` or `openai` to choose explicitly, and `DOCUASK_CHAT_MODEL` or `DOCUASK_EMBEDDING_MODEL` to change models.
 
-Optional settings:
+### Web page
 
-| Variable | Default |
-| --- | --- |
-| `DOCUASK_CHAT_MODEL` | `gpt-4o-mini` |
-| `DOCUASK_EMBEDDING_MODEL` | `text-embedding-3-small` |
+**Document Ask**, the same RAG engine in the browser. Upload your own PDF, Markdown or text files (or use the samples), ask a question, and see the answer with the source passages and their similarity scores.
+
+```bash
+dotnet run --project src/DocuAsk.Web
+```
+
+It opens `http://localhost:5090`. Provider settings are the same as the CLI.
 
 ## Run the tests
 
@@ -66,7 +80,7 @@ The tests cover chunk sizes and overlap, cosine similarity, search ranking and s
 
 ## Using a different model provider
 
-The core library only knows about two small interfaces, `IEmbedder` and `IAnswerGenerator`. The CLI implements them on top of Microsoft.Extensions.AI, so any provider with an `IChatClient` and `IEmbeddingGenerator` implementation, such as Azure OpenAI or a local model, can be used by changing a few lines in `Program.cs`.
+The core library only knows about two small interfaces, `IEmbedder` and `IAnswerGenerator`. The CLI implements them on top of Microsoft.Extensions.AI, so any provider with an `IChatClient` and `IEmbeddingGenerator` implementation can be plugged in. OpenAI and Ollama are supported out of the box; Azure OpenAI would need only a few lines in `Program.cs`.
 
 ## Possible next steps
 

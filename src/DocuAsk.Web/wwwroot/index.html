@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document Ask</title>
+<style>
+:root{--bg:#f4f5f8;--surface:#fff;--fg:#14161b;--muted:#5d6472;--line:#e1e4ea;--accent:#4b6bff;--accent-soft:#eaeeff;--ink:#0f1117}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1117;--surface:#171a21;--fg:#e9ebf0;--muted:#9aa1ae;--line:#2a2f3a;--accent:#7d98ff;--accent-soft:#1d2440}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:40px 20px 60px}
+header{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:700}
+h1{margin:0;font-size:24px;letter-spacing:-.01em;line-height:1.2}
+.tagline{font-size:13.5px;color:var(--muted)}
+.sub{margin:6px 0 0;color:var(--muted)}
+.docs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.docs span.new{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.upload{display:flex;flex-direction:column;gap:4px;margin:20px 0 6px;padding:18px 20px;border:1.5px dashed var(--line);border-radius:14px;background:var(--surface);cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.upload:hover,.upload.over{border-color:var(--accent);background:var(--accent-soft)}
+.upload input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.up-title{font-weight:600;color:var(--accent)}
+.up-hint{font-size:13.5px;color:var(--muted)}
+.status{min-height:22px;font-size:14px;color:var(--muted);margin-bottom:6px}
+.status .ok{color:#1f9d55}
+.docs span{font:500 12.5px/1 ui-monospace,Consolas,monospace;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted)}
+form{display:flex;gap:10px}
+input{flex:1;min-width:0;font:inherit;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg)}
+input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+button{font-family:inherit;font-weight:600;font-size:15px;line-height:1;padding:0 20px;border:0;border-radius:12px;background:var(--accent);color:#fff;cursor:pointer}
+button:disabled{opacity:.6;cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chips button{background:var(--accent-soft);color:var(--accent);font-weight:500;font-size:13.5px;padding:8px 12px;border-radius:999px}
+.result{margin-top:28px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.q{font-size:13px;color:var(--muted);margin-bottom:6px}
+.answer{font-size:17px;margin:0;white-space:pre-wrap}
+.sources{margin-top:16px;display:grid;gap:10px}
+.src{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg)}
+.src-head{display:flex;justify-content:space-between;gap:10px;font-size:13.5px}
+.src-head b{font-family:ui-monospace,Consolas,monospace;font-weight:600}
+.score{color:var(--accent);font-weight:600}
+.src p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.label{font:600 11.5px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.loading{color:var(--muted)}
+.error{color:#d14343}
+footer{margin-top:36px;color:var(--muted);font-size:13px}
+@media (max-width:520px){form{flex-direction:column}button[type=submit]{padding:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">D</div>
+    <div>
+      <h1>Document Ask</h1>
+      <div class="tagline">Answers from your documents, with sources · RAG demo</div>
+    </div>
+  </header>
+  <p class="sub">Upload your own documents, or try the sample Northwind Air travel policies. Answers come only from the loaded documents, with sources.</p>
+
+  <label class="upload" id="drop">
+    <input type="file" id="files" multiple accept=".pdf,.md,.txt">
+    <span class="up-title">+ Upload documents</span>
+    <span class="up-hint">PDF, Markdown or text, up to 5 MB each. Click or drag files here.</span>
+  </label>
+  <div class="status" id="status"></div>
+
+  <div class="label">Loaded documents</div>
+  <div class="docs" id="docs"></div>
+
+  <form id="ask">
+    <input id="question" type="text" maxlength="500" placeholder="e.g. How much does an extra checked bag cost?" autocomplete="off" required>
+    <button type="submit" id="go">Ask</button>
+  </form>
+  <div class="chips" id="chips">
+    <button type="button">How much does an extra checked bag cost?</button>
+    <button type="button">Can I get a refund on a saver fare?</button>
+    <button type="button">Does travel insurance cover lost baggage?</button>
+    <button type="button">What's the weather in Sydney today?</button>
+  </div>
+
+  <div class="result" id="result"></div>
+
+  <footer id="foot">Northwind Air is a fictional airline used for this demo.</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const uploaded = new Set();
+const showDocs = docs => { $('docs').innerHTML = docs.map(d => `<span class="${uploaded.has(d) ? 'new' : ''}">${esc(d)}</span>`).join(''); };
+
+fetch('/api/info').then(r => r.json()).then(info => {
+  showDocs(info.documents);
+  $('foot').textContent += ` Running on ${info.provider === 'ollama' ? 'a local model (Ollama)' : 'OpenAI'}.`;
+}).catch(() => {});
+
+document.querySelectorAll('#chips button').forEach(b =>
+  b.addEventListener('click', () => { $('question').value = b.textContent; ask(); }));
+
+$('ask').addEventListener('submit', e => { e.preventDefault(); ask(); });
+
+$('files').addEventListener('change', () => upload($('files').files));
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => upload(e.dataTransfer.files));
+
+async function upload(files) {
+  if (!files || files.length === 0) return;
+  const form = new FormData();
+  [...files].forEach(f => form.append('files', f));
+  $('status').textContent = `Reading and indexing ${files.length} file(s)… this can take a minute with a local model.`;
+  try {
+    const res = await fetch('/api/documents', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.detail || 'Upload failed.');
+    data.added.forEach(n => uploaded.add(n));
+    showDocs(data.documents);
+    const parts = [];
+    if (data.added.length) parts.push(`<span class="ok">Added ${data.added.map(esc).join(', ')} (${data.chunks} chunks). Ask a question about it below.</span>`);
+    data.errors.forEach(e => parts.push(`<span class="error">${esc(e)}</span>`));
+    $('status').innerHTML = parts.join('<br>');
+  } catch (err) {
+    $('status').innerHTML = `<span class="error">${esc(err.message)}</span>`;
+  } finally {
+    $('files').value = '';
+  }
+}
+
+async function ask() {
+  const question = $('question').value.trim();
+  if (!question) return;
+  $('go').disabled = true;
+  $('result').innerHTML = `<div class="card loading">Searching the documents…</div>`;
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.detail || 'Something went wrong.');
+    const sources = data.sources.length
+      ? `<div class="label">Sources</div><div class="sources">${data.sources.map((s, i) => `
+          <div class="src">
+            <div class="src-head"><b>[${i + 1}] ${esc(s.document)}</b><span class="score">similarity ${s.similarity.toFixed(2)}</span></div>
+            <p>${esc(s.excerpt)}</p>
+          </div>`).join('')}</div>`
+      : '';
+    $('result').innerHTML = `<div class="card"><div class="q">${esc(question)}</div><p class="answer">${esc(data.answer)}</p>${sources}</div>`;
+  } catch (err) {
+    $('result').innerHTML = `<div class="card error">${esc(err.message)}</div>`;
+  } finally {
+    $('go').disabled = false;
+  }
+}
+</script>
+</body>
+</html>
