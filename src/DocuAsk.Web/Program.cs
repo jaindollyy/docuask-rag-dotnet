@@ -194,7 +194,7 @@ static async Task<string> ReadTextAsync(IFormFile file, CancellationToken ct)
         await stream.CopyToAsync(buffer, ct);
         using var pdf = PdfDocument.Open(buffer.ToArray());
         // Reads words in reading order with proper spacing, which page.Text doesn't always keep.
-        return string.Join("\n\n", pdf.GetPages().Select(ContentOrderTextExtractor.GetText));
+        return string.Join("\n\n", pdf.GetPages().Select(page => ContentOrderTextExtractor.GetText(page)));
     }
 
     using var reader = new StreamReader(stream);
