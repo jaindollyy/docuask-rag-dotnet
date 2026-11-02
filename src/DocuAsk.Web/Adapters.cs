@@ -99,7 +99,9 @@ public sealed class DocumentLibrary(RagService rag)
     }
 }
 
-public sealed record AskRequest(string? Question);
+public sealed record AskRequest(string? Question, string? Collection);
+
+public sealed record Libraries(DocumentLibrary Samples, DocumentLibrary Uploads);
 
 public sealed record SourceResult(string Document, float Similarity, string Excerpt);
 

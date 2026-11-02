@@ -51,25 +51,28 @@ var docsPath = builder.Configuration["DocsPath"] ?? DocsFolder.Find()
 
 var documents = DocumentLoader.LoadDirectory(docsPath);
 var chunker = new TextChunker(maxChars: 800, overlapChars: 100);
-var index = new InMemoryVectorIndex();
-var rag = new RagService(
-    new ExtensionsAiEmbedder(embeddingGenerator),
-    new ExtensionsAiAnswerGenerator(chatClient),
-    chunker,
-    index,
-    new RagOptions { TopK = 4, MinScore = minScore });
+var ragOptions = new RagOptions { TopK = 4, MinScore = minScore };
+var embedder = new ExtensionsAiEmbedder(embeddingGenerator);
+var generator = new ExtensionsAiAnswerGenerator(chatClient);
+
+// Two separate collections, each with its own index, so answers never mix:
+// the built-in samples, and the documents a visitor uploads.
+var sampleIndex = new InMemoryVectorIndex();
+var sampleRag = new RagService(embedder, generator, chunker, sampleIndex, ragOptions);
+var uploadRag = new RagService(embedder, generator, chunker, new InMemoryVectorIndex(), ragOptions);
 
 var cachePath = Path.Combine(docsPath, ".docuask-index.json");
 var fingerprint = IndexFingerprint.Compute(documents, chunker, embeddingModel);
-if (!await index.TryLoadAsync(cachePath, fingerprint))
+if (!await sampleIndex.TryLoadAsync(cachePath, fingerprint))
 {
-    await rag.IndexAsync(documents);
-    await index.SaveAsync(cachePath, fingerprint);
+    await sampleRag.IndexAsync(documents);
+    await sampleIndex.SaveAsync(cachePath, fingerprint);
 }
 
-var library = new DocumentLibrary(rag);
-library.Register(documents.Select(d => d.Name));
-builder.Services.AddSingleton(library);
+var samples = new DocumentLibrary(sampleRag);
+samples.Register(documents.Select(d => d.Name));
+var uploads = new DocumentLibrary(uploadRag);
+builder.Services.AddSingleton(new Libraries(samples, uploads));
 
 var app = builder.Build();
 
@@ -80,14 +83,17 @@ const long MaxFileBytes = 5 * 1024 * 1024;
 const int MaxDocuments = 25;
 string[] allowedTypes = [".pdf", ".md", ".txt"];
 
-app.MapGet("/api/info", (DocumentLibrary lib) => new
+app.MapGet("/api/info", (Libraries libs) => new
 {
     provider,
-    documents = lib.Names,
+    samples = libs.Samples.Names,
+    uploads = libs.Uploads.Names,
 });
 
-app.MapPost("/api/documents", async (HttpRequest request, DocumentLibrary lib, CancellationToken ct) =>
+app.MapPost("/api/documents", async (HttpRequest request, Libraries libs, CancellationToken ct) =>
 {
+    var lib = libs.Uploads;
+
     if (!request.HasFormContentType)
         return Results.BadRequest(new { error = "Upload files as form data." });
 
@@ -149,8 +155,12 @@ app.MapPost("/api/documents", async (HttpRequest request, DocumentLibrary lib, C
     });
 });
 
-app.MapPost("/api/ask", async (AskRequest request, DocumentLibrary lib, CancellationToken ct) =>
+app.MapPost("/api/ask", async (AskRequest request, Libraries libs, CancellationToken ct) =>
 {
+    var lib = string.Equals(request.Collection, "samples", StringComparison.OrdinalIgnoreCase) ? libs.Samples : libs.Uploads;
+    if (lib.Names.Count == 0)
+        return Results.BadRequest(new { error = "Upload a document first, then ask about it." });
+
     var question = request.Question?.Trim();
     if (string.IsNullOrEmpty(question))
         return Results.BadRequest(new { error = "Enter a question." });

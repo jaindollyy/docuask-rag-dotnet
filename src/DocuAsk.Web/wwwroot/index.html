@@ -5,48 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Document Ask</title>
 <style>
-:root{--bg:#f4f5f8;--surface:#fff;--fg:#14161b;--muted:#5d6472;--line:#e1e4ea;--accent:#4b6bff;--accent-soft:#eaeeff;--ink:#0f1117}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1117;--surface:#171a21;--fg:#e9ebf0;--muted:#9aa1ae;--line:#2a2f3a;--accent:#7d98ff;--accent-soft:#1d2440}}
+:root{--bg:#f4f5f8;--surface:#fff;--fg:#14161b;--muted:#5d6472;--line:#e1e4ea;--accent:#4b6bff;--accent-soft:#eaeeff;--ok:#1f9d55;--err:#d14343}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1117;--surface:#171a21;--fg:#e9ebf0;--muted:#9aa1ae;--line:#2a2f3a;--accent:#7d98ff;--accent-soft:#1d2440;--ok:#4cc38a;--err:#ff7b7b}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:760px;margin:0 auto;padding:40px 20px 60px}
+.wrap{max-width:780px;margin:0 auto;padding:40px 20px 60px}
 header{display:flex;align-items:center;gap:12px}
-.logo{width:36px;height:36px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:700}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:700}
 h1{margin:0;font-size:24px;letter-spacing:-.01em;line-height:1.2}
 .tagline{font-size:13.5px;color:var(--muted)}
-.sub{margin:6px 0 0;color:var(--muted)}
-.docs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
-.docs span.new{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-.upload{display:flex;flex-direction:column;gap:4px;margin:20px 0 6px;padding:18px 20px;border:1.5px dashed var(--line);border-radius:14px;background:var(--surface);cursor:pointer;transition:border-color .15s ease,background .15s ease}
+
+.tabs{display:flex;gap:4px;margin:26px 0 0;border-bottom:1px solid var(--line)}
+.tab{font:inherit;font-weight:600;font-size:15px;padding:11px 16px;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-top:0;border-radius:0 0 16px 16px;padding:22px}
+.panel[hidden]{display:none}
+.intro{margin:0 0 16px;color:var(--muted)}
+
+.upload{display:flex;flex-direction:column;gap:4px;padding:18px;border:1.5px dashed var(--line);border-radius:12px;background:var(--bg);cursor:pointer;transition:border-color .15s ease,background .15s ease}
 .upload:hover,.upload.over{border-color:var(--accent);background:var(--accent-soft)}
 .upload input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .up-title{font-weight:600;color:var(--accent)}
 .up-hint{font-size:13.5px;color:var(--muted)}
-.status{min-height:22px;font-size:14px;color:var(--muted);margin-bottom:6px}
-.status .ok{color:#1f9d55}
-.docs span{font:500 12.5px/1 ui-monospace,Consolas,monospace;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted)}
-form{display:flex;gap:10px}
-input{flex:1;min-width:0;font:inherit;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg)}
-input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
-button{font-family:inherit;font-weight:600;font-size:15px;line-height:1;padding:0 20px;border:0;border-radius:12px;background:var(--accent);color:#fff;cursor:pointer}
-button:disabled{opacity:.6;cursor:default}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.chips button{background:var(--accent-soft);color:var(--accent);font-weight:500;font-size:13.5px;padding:8px 12px;border-radius:999px}
-.result{margin-top:28px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.status{min-height:22px;font-size:14px;color:var(--muted);margin:8px 0 4px}
+.status .ok{color:var(--ok)}
+.status .error,.error{color:var(--err)}
+
+.label{font:600 11.5px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+.docs{display:flex;flex-wrap:wrap;gap:8px}
+.docs span{font:500 12.5px/1 ui-monospace,Consolas,monospace;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--muted)}
+.docs span.mine{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.docs .empty{border:0;background:none;padding:0;font:14px/1.4 inherit;font-family:inherit;color:var(--muted)}
+
+form{display:flex;gap:10px;margin-top:18px}
+input[type=text]{flex:1;min-width:0;font:inherit;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg)}
+input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+input[type=text]:disabled{opacity:.6}
+.go{font-family:inherit;font-weight:600;font-size:15px;line-height:1;padding:0 20px;border:0;border-radius:12px;background:var(--accent);color:#fff;cursor:pointer}
+.go:disabled{opacity:.5;cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font-family:inherit;font-size:13.5px;font-weight:500;padding:8px 12px;border:0;border-radius:999px;background:var(--accent-soft);color:var(--accent);cursor:pointer}
+
+.result:empty{display:none}
+.result{margin-top:18px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
 .q{font-size:13px;color:var(--muted);margin-bottom:6px}
 .answer{font-size:17px;margin:0;white-space:pre-wrap}
-.sources{margin-top:16px;display:grid;gap:10px}
-.src{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg)}
+.sources{display:grid;gap:10px}
+.src{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface)}
 .src-head{display:flex;justify-content:space-between;gap:10px;font-size:13.5px}
-.src-head b{font-family:ui-monospace,Consolas,monospace;font-weight:600}
-.score{color:var(--accent);font-weight:600}
+.src-head b{font-family:ui-monospace,Consolas,monospace;font-weight:600;overflow-wrap:anywhere}
+.score{color:var(--accent);font-weight:600;white-space:nowrap}
 .src p{margin:6px 0 0;color:var(--muted);font-size:14px}
-.label{font:600 11.5px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
 .loading{color:var(--muted)}
-.error{color:#d14343}
-footer{margin-top:36px;color:var(--muted);font-size:13px}
-@media (max-width:520px){form{flex-direction:column}button[type=submit]{padding:13px}}
+footer{margin-top:28px;color:var(--muted);font-size:13px}
+@media (max-width:520px){form{flex-direction:column}.go{padding:13px}.tab{padding:10px 12px;font-size:14px}}
 </style>
 </head>
 <body>
@@ -58,51 +71,89 @@ footer{margin-top:36px;color:var(--muted);font-size:13px}
       <div class="tagline">Answers from your documents, with sources · RAG demo</div>
     </div>
   </header>
-  <p class="sub">Upload your own documents, or try the sample Northwind Air travel policies. Answers come only from the loaded documents, with sources.</p>
 
-  <label class="upload" id="drop">
-    <input type="file" id="files" multiple accept=".pdf,.md,.txt">
-    <span class="up-title">+ Upload documents</span>
-    <span class="up-hint">PDF, Markdown or text, up to 5 MB each. Click or drag files here.</span>
-  </label>
-  <div class="status" id="status"></div>
-
-  <div class="label">Loaded documents</div>
-  <div class="docs" id="docs"></div>
-
-  <form id="ask">
-    <input id="question" type="text" maxlength="500" placeholder="e.g. How much does an extra checked bag cost?" autocomplete="off" required>
-    <button type="submit" id="go">Ask</button>
-  </form>
-  <div class="chips" id="chips">
-    <button type="button">How much does an extra checked bag cost?</button>
-    <button type="button">Can I get a refund on a saver fare?</button>
-    <button type="button">Does travel insurance cover lost baggage?</button>
-    <button type="button">What's the weather in Sydney today?</button>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-uploads" aria-controls="panel-uploads" aria-selected="true">Your documents</button>
+    <button class="tab" role="tab" id="tab-samples" aria-controls="panel-samples" aria-selected="false">Sample documents</button>
   </div>
 
-  <div class="result" id="result"></div>
+  <!-- Tab 1: upload and ask about your own documents -->
+  <section class="panel" id="panel-uploads" role="tabpanel" aria-labelledby="tab-uploads">
+    <p class="intro">Upload a document, then ask questions about it. Answers come only from what you upload.</p>
 
-  <footer id="foot">Northwind Air is a fictional airline used for this demo.</footer>
+    <label class="upload" id="drop">
+      <input type="file" id="files" multiple accept=".pdf,.md,.txt">
+      <span class="up-title">+ Upload documents</span>
+      <span class="up-hint">PDF, Markdown or text, up to 5 MB each. Click or drag files here.</span>
+    </label>
+    <div class="status" id="status"></div>
+
+    <div class="label">Uploaded</div>
+    <div class="docs" id="uploads-list"><span class="empty">Nothing uploaded yet</span></div>
+
+    <form data-collection="uploads">
+      <input type="text" maxlength="500" placeholder="Upload a document to start asking" autocomplete="off" disabled required>
+      <button class="go" type="submit" disabled>Ask</button>
+    </form>
+    <div class="result"></div>
+  </section>
+
+  <!-- Tab 2: ask about the built-in sample documents -->
+  <section class="panel" id="panel-samples" role="tabpanel" aria-labelledby="tab-samples" hidden>
+    <p class="intro">Try it straight away with three sample policy documents from Northwind Air, a fictional airline.</p>
+
+    <div class="label">Sample documents</div>
+    <div class="docs" id="samples-list"></div>
+
+    <form data-collection="samples">
+      <input type="text" maxlength="500" placeholder="e.g. How much does an extra checked bag cost?" autocomplete="off" required>
+      <button class="go" type="submit">Ask</button>
+    </form>
+    <div class="label">Try a question</div>
+    <div class="chips" id="chips">
+      <button type="button">How much does an extra checked bag cost?</button>
+      <button type="button">Can I get a refund on a saver fare?</button>
+      <button type="button">Does travel insurance cover lost baggage?</button>
+      <button type="button">What's the weather in Sydney today?</button>
+    </div>
+    <div class="result"></div>
+  </section>
+
+  <footer id="foot">Document Ask only answers from the loaded documents and shows which passages it used.</footer>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const uploaded = new Set();
-const showDocs = docs => { $('docs').innerHTML = docs.map(d => `<span class="${uploaded.has(d) ? 'new' : ''}">${esc(d)}</span>`).join(''); };
+// Tabs
+const tabs = [...document.querySelectorAll('.tab')];
+tabs.forEach(tab => tab.addEventListener('click', () => {
+  tabs.forEach(t => {
+    const selected = t === tab;
+    t.setAttribute('aria-selected', selected);
+    $(t.getAttribute('aria-controls')).hidden = !selected;
+  });
+}));
+
+// Document lists
+const uploadsForm = document.querySelector('form[data-collection="uploads"]');
+function showUploads(names) {
+  $('uploads-list').innerHTML = names.length
+    ? names.map(n => `<span class="mine">${esc(n)}</span>`).join('')
+    : '<span class="empty">Nothing uploaded yet</span>';
+  const input = uploadsForm.querySelector('input');
+  input.disabled = uploadsForm.querySelector('button').disabled = names.length === 0;
+  input.placeholder = names.length ? 'Ask a question about your documents' : 'Upload a document to start asking';
+}
 
 fetch('/api/info').then(r => r.json()).then(info => {
-  showDocs(info.documents);
+  $('samples-list').innerHTML = info.samples.map(n => `<span>${esc(n)}</span>`).join('');
+  showUploads(info.uploads);
   $('foot').textContent += ` Running on ${info.provider === 'ollama' ? 'a local model (Ollama)' : 'OpenAI'}.`;
 }).catch(() => {});
 
-document.querySelectorAll('#chips button').forEach(b =>
-  b.addEventListener('click', () => { $('question').value = b.textContent; ask(); }));
-
-$('ask').addEventListener('submit', e => { e.preventDefault(); ask(); });
-
+// Upload
 $('files').addEventListener('change', () => upload($('files').files));
 const drop = $('drop');
 ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
@@ -118,12 +169,12 @@ async function upload(files) {
     const res = await fetch('/api/documents', { method: 'POST', body: form });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || data.detail || 'Upload failed.');
-    data.added.forEach(n => uploaded.add(n));
-    showDocs(data.documents);
+    showUploads(data.documents);
     const parts = [];
-    if (data.added.length) parts.push(`<span class="ok">Added ${data.added.map(esc).join(', ')} (${data.chunks} chunks). Ask a question about it below.</span>`);
+    if (data.added.length) parts.push(`<span class="ok">Added ${data.added.map(esc).join(', ')}. Ask a question below.</span>`);
     data.errors.forEach(e => parts.push(`<span class="error">${esc(e)}</span>`));
     $('status').innerHTML = parts.join('<br>');
+    if (data.added.length) uploadsForm.querySelector('input').focus();
   } catch (err) {
     $('status').innerHTML = `<span class="error">${esc(err.message)}</span>`;
   } finally {
@@ -131,16 +182,30 @@ async function upload(files) {
   }
 }
 
-async function ask() {
-  const question = $('question').value.trim();
+// Ask (each tab has its own form and result)
+document.querySelectorAll('form[data-collection]').forEach(form =>
+  form.addEventListener('submit', e => { e.preventDefault(); ask(form); }));
+
+document.querySelectorAll('#chips button').forEach(b => b.addEventListener('click', () => {
+  const form = document.querySelector('form[data-collection="samples"]');
+  form.querySelector('input').value = b.textContent;
+  ask(form);
+}));
+
+async function ask(form) {
+  const input = form.querySelector('input');
+  const button = form.querySelector('button');
+  const result = form.closest('.panel').querySelector('.result');
+  const question = input.value.trim();
   if (!question) return;
-  $('go').disabled = true;
-  $('result').innerHTML = `<div class="card loading">Searching the documents…</div>`;
+
+  button.disabled = true;
+  result.innerHTML = `<div class="card loading">Searching the documents…</div>`;
   try {
     const res = await fetch('/api/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question })
+      body: JSON.stringify({ question, collection: form.dataset.collection })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || data.detail || 'Something went wrong.');
@@ -151,11 +216,11 @@ async function ask() {
             <p>${esc(s.excerpt)}</p>
           </div>`).join('')}</div>`
       : '';
-    $('result').innerHTML = `<div class="card"><div class="q">${esc(question)}</div><p class="answer">${esc(data.answer)}</p>${sources}</div>`;
+    result.innerHTML = `<div class="card"><div class="q">${esc(question)}</div><p class="answer">${esc(data.answer)}</p>${sources}</div>`;
   } catch (err) {
-    $('result').innerHTML = `<div class="card error">${esc(err.message)}</div>`;
+    result.innerHTML = `<div class="card error">${esc(err.message)}</div>`;
   } finally {
-    $('go').disabled = false;
+    button.disabled = false;
   }
 }
 </script>
